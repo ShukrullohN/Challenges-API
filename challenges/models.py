@@ -7,7 +7,7 @@ class ChallengeModel(BaseModel):
     info = models.TextField()
     missions = models.TextField()
     daily_missions = models.TextField()
-    owner = models.ForeignKey(UserModel, on_delete=CASCADE)
+    owner = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     start_at = models.DateField()
     full_time = models.IntegerField()
     end_at = models.DateField(null=True, blank=True)
@@ -17,8 +17,9 @@ class ChallengeModel(BaseModel):
         return self.name
     
     def challenge_end_at(self):
-        start_at
+        end_at = start_at + timedelta(days=full_time)
+        self.end_at = end_at
 
 class ActiveUserModel(BaseModel):
-    users = models.ForeignKey(UserModel, on_delete=CASCADE)
-    challenges = models.ForeignKey(ChallengeModel, on_delete=CASCADE)
+    users = models.ForeignKey(UserModel, on_delete=models.CASCADE)
+    challenges = models.ForeignKey(ChallengeModel, on_delete=models.CASCADE)
