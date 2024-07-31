@@ -9,7 +9,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from shared.utils import send_code_to_email, send_code_to_phone
 from users.models import UserModel, ConfirmationModel, CODE_VERIFIED, VIA_EMAIL, VIA_PHONE
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
-from shared.permissions import IsOwner
+from users.permissions import IsOwner
 
 from users.serializers import SignUpSerializer, UpdateUserSerializer, LoginSerializer, \
     LogoutSerializer, ForgetPasswordSerializer, UserSerializer

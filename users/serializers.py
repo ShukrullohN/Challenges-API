@@ -6,9 +6,13 @@ from rest_framework import serializers
 from rest_framework.authtoken.admin import User
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from shared.utils import send_code_to_email, send_code_to_phone
+from users.utils import send_code_to_email, send_code_to_phone
 from users.models import UserModel, VIA_EMAIL, VIA_PHONE,  DONE
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserModel
+        fields = '__all__'
 
 class SignUpSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
@@ -25,13 +29,13 @@ class SignUpSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         data = self.auth_validate(data=data)
-        auth_type = data['auth_type']
-        if auth_type == VIA_EMAIL:
-            if UserModel.objects.filter(email=data['email']).exists():
-                raise serializers.ValidationError("This email is already registered, use resend code api")
-        else:
-            if UserModel.objects.filter(phone_number=data['phone_number']).exists():
-                raise serializers.ValidationError("This phone number is already registered, use resend code api")
+        # auth_type = data['auth_type']
+        # if auth_type == VIA_EMAIL:
+        #     if UserModel.objects.filter(email=data['email']).exists():
+        #         raise serializers.ValidationError("This email is already registered, use resend code api")
+        # else:
+        #     if UserModel.objects.filter(phone_number=data['phone_number']).exists():
+        #         raise serializers.ValidationError("This phone number is already registered, use resend code api")
         return data
 
     def create(self, validated_data):

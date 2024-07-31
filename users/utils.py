@@ -2,15 +2,14 @@ import threading
 import vonage
 from django.core.mail import EmailMessage, send_mail
 from decouple import config
+from conf.settings import EMAIL_HOST_USER
 
 
 
 def send_code_to_email(email, code):
     def send_in_thread():
-        import socket
-        socket.getaddrinfo('localhost', 8080)
         send_mail(
-            from_email=config('EMAIL_HOST'),
+            from_email=EMAIL_HOST_USER,
             recipient_list=[email],
             subject="Activation code",
             message=f"Your activation code is {code}"
@@ -20,6 +19,8 @@ def send_code_to_email(email, code):
     thread.start()
 
     return True
+
+
 
 
 def send_code_to_phone(phone_number, code):

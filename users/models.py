@@ -6,7 +6,6 @@ from django.contrib.auth.models import AbstractUser, User
 from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from shared.models import BaseModel
 from django.db import models
 
 VIA_EMAIL, VIA_PHONE = "VIA_EMAIL", "VIA_PHONE"
@@ -14,7 +13,7 @@ ORDINARY_USER, OWNER, ADMIN = "ORDINARY_USER", "OWNER", "ADMIN"
 NEW, CODE_VERIFIED, DONE= "NEW", "CODE_VERIFIED", "DONE"
 
 
-class UserModel(AbstractUser, BaseModel):
+class UserModel(AbstractUser, models.Model):
     AUTH_TYPES = (
         (VIA_EMAIL, VIA_EMAIL),
         (VIA_PHONE, VIA_PHONE)
@@ -38,6 +37,9 @@ class UserModel(AbstractUser, BaseModel):
 
     email = models.EmailField(null=True, blank=True)
     phone_number = models.CharField(max_length=13, null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
     def __str__(self):
@@ -98,7 +100,7 @@ EMAIL_EXPIRATION_TIME = 4
 PHONE_EXPIRATION_TIME = 2
 
 
-class ConfirmationModel(BaseModel):
+class ConfirmationModel(models.Model):
     VERIFY_TYPES = (
         (VIA_EMAIL, VIA_EMAIL),
         (VIA_PHONE, VIA_PHONE)
@@ -117,3 +119,6 @@ class ConfirmationModel(BaseModel):
             else:
                 self.expiration_time = timezone.now() + timedelta(minutes=PHONE_EXPIRATION_TIME)
         super(ConfirmationModel, self).save(*args, **kwargs)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
