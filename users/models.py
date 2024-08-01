@@ -45,6 +45,11 @@ class UserModel(AbstractUser, models.Model):
     def __str__(self):
         return self.username
 
+    class Meta:
+        db_table = 'Users'
+        verbose_name = 'User'
+        verbose_name_plural = 'users'   
+
     @property
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
@@ -122,3 +127,9 @@ class ConfirmationModel(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+    class Meta:
+        db_table = 'Confirmation'
+        verbose_name = 'Confirmation'
+        verbose_name_plural = 'Confirmations'

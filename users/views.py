@@ -6,7 +6,7 @@ from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from shared.utils import send_code_to_email, send_code_to_phone
+from users.utils import send_code_to_email, send_code_to_phone
 from users.models import UserModel, ConfirmationModel, CODE_VERIFIED, VIA_EMAIL, VIA_PHONE
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from users.permissions import IsOwner
