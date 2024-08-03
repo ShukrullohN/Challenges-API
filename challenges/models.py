@@ -13,6 +13,7 @@ class ChallengeModel(models.Model):
     start_at = models.DateField()   
     full_time = models.IntegerField()
     end_at = models.DateField(null=True, blank=True)
+    limited_time = models.IntegerField()
     status = models.BooleanField(default=True, null=True, blank=True) # True - Public, False - Private
     secret_key = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
 
@@ -49,13 +50,17 @@ class ChallengeModel(models.Model):
 
 
 class TasksModel(models.Model):
-    limited_time = models.IntegerField()
+    Challenge = models.ForeignKey(ChallengeModel, on_delete=models.CASCADE)
+    days = models.CharField(max_length=12)
     limited_tasks = models.TextField()
 
     class Meta:
         db_table = 'Tasks'
         verbose_name = 'Tasks'
         verbose_name_plural = 'Task'    
+
+
+
 
 class MemberModel(models.Model):
     user = models.ForeignKey(UserModel, on_delete=models.CASCADE)

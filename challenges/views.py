@@ -49,3 +49,35 @@ class ChallengeUpdateAPIView(generics.UpdateAPIView):
         }
         return Response(response, status=status.HTTP_202_ACCEPTED)
 
+class ChallengeDetailAPIView(APIView):
+    def get(self, request, pk):
+        challenge = generics.get_object_or_404(ChallengeModel, pk=pk)
+        serializer = ChallengeSerializer(challenge)
+        response = {
+            'success': True,
+            'book': serializer.data,
+
+        }
+        return Response(response, status=status.HTTP_200_OK)
+
+class ChallengeDeleteAPIView(APIView):
+    permission_classes = [IsAuthenticated, IsOwner]
+
+    def delete(self, request, pk):
+        challenge = ChallengeModel.objects.filter(pk=pk)
+        if not challenge.first():
+            response = {
+                "status": False,
+                "message": "Product does not found",
+            }
+            return Response(response, status=status.HTTP_404_NOT_FOUND)
+        self.check_object_permissions(challenge.first(), request)
+        challenge.delete()
+        response = {
+            "status": True,
+            "message": "Successfully deleted"
+        }
+        return Response(response, status=status.HTTP_204_NO_CONTENT)
+
+class ChallengeFillTasks(APIView):
+    pass
