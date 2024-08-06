@@ -9,11 +9,12 @@ class ChallengeModel(models.Model):
     goal = models.CharField(max_length=255)
     image = models.ImageField(upload_to='images', null=True, blank=True)
     mission = models.TextField()
+    is_different = models.BooleanField(default=True) # Kunlik vazifalarnimg bir xil yoki har xilligi. True - har xil
     owner = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     start_at = models.DateField()   
-    full_time = models.IntegerField()
+    full_time = models.IntegerField() # Challenjning umumiy vaqti yani davom etish muddati
     end_at = models.DateField(null=True, blank=True)
-    limited_time = models.IntegerField()
+    limited_time = models.IntegerField() # Qancha vaqtdqa yangi vazifa berilishi.
     status = models.BooleanField(default=True, null=True, blank=True) # True - Public, False - Private
     secret_key = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
 
@@ -22,13 +23,17 @@ class ChallengeModel(models.Model):
 
 
     def __str__(self):
-        return self.name
+        return self.id
 
     class Meta:
         db_table = 'challenges'
         verbose_name = 'challenge'
         verbose_name_plural = 'challenges'
 
+
+    @property
+    def full_name(self):
+        return self.name
 
     def challenge_end_at(self):
         if not self.end_at:
@@ -50,7 +55,7 @@ class ChallengeModel(models.Model):
 
 
 class TasksModel(models.Model):
-    Challenge = models.ForeignKey(ChallengeModel, on_delete=models.CASCADE)
+    challenge = models.ForeignKey(ChallengeModel, on_delete=models.CASCADE)
     days = models.CharField(max_length=12)
     limited_tasks = models.TextField()
 
@@ -58,6 +63,9 @@ class TasksModel(models.Model):
         db_table = 'Tasks'
         verbose_name = 'Tasks'
         verbose_name_plural = 'Task'    
+
+
+    
 
 
 
@@ -69,11 +77,12 @@ class MemberModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return f"{self.user.username} * {self.challenge.name}"
-
-    
     class Meta:
+        unique_together = ('challenge', 'user')
         db_table = 'Members'
         verbose_name = 'Member'
         verbose_name_plural = 'Members'
+
+    def __str__(self):
+        return f"{self.user.username} in {self.challenge.name}"
+        

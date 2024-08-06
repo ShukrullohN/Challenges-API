@@ -9,4 +9,6 @@ urlpatterns = [
     path('<int:pk>/update/', ChallengeUpdateAPIView.as_view(), name='update'),
     path('<int:pk>/detail/', ChallengeDetailAPIView.as_view(), name='detail'),
     path('<int:pk>/delete/', ChallengeDetailAPIView.as_view(), name='delete'),
+    path('<int:pk>/join/', JoinChallengeView.as_view(), name='join-challenge'),
+
 ]

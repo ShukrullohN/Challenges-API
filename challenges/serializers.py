@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from challenges.models import ChallengeModel, TasksModel
+from challenges.models import ChallengeModel, TasksModel, MemberModel
 from users.models import UserModel
 
 class UserSerializer(serializers.ModelSerializer):
@@ -7,15 +7,39 @@ class UserSerializer(serializers.ModelSerializer):
         model = UserModel
         fields = [ 'id', 'username']
 
-class ChallengeListSerializer(serializers.Serializer):
+class MemberSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    class Meta:
+        model = MemberModel
+        fields = ['id',  'user']
+
+
+class ChallengeDetailSerializers(serializers.ModelSerializer):
+    owner = UserSerializer(read_only=True)
+    members = MemberSerializer(read_only=True)
+
+    class Meta:
+        model = ChallengeModel
+        fields = ['id', 'name', 'image', 'goal', 'owner', 'members']
+
+class ChallengeListSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
     class Meta:
         model = ChallengeModel
         fields = ['id', 'owner', 'name', 'goal', 'image']
 
 
+class JoinChallengeSerializer(serializers.ModelSerializer):
+    members = serializers.StringRelatedField(many=True)
+
+    class Meta:
+        model = ChallengeModel
+        fields = ['id', 'name', 'info', 'members']
+
+
 class ChallengeSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
+
     class Meta:
         model = ChallengeModel
         fields  = '__all__'
