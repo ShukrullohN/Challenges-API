@@ -55,27 +55,30 @@ class ChallengeModel(models.Model):
 
 
 class TasksModel(models.Model):
-    challenge = models.ForeignKey(ChallengeModel, on_delete=models.CASCADE)
-    days = models.CharField(max_length=12)
-    limited_tasks = models.TextField()
+    challenge = models.ForeignKey(ChallengeModel,related_name='daily_tasks', on_delete=models.CASCADE)
+    due_date = models.DateField()
+    tasks = models.TextField()
 
     class Meta:
         db_table = 'Tasks'
         verbose_name = 'Tasks'
         verbose_name_plural = 'Task'    
 
-
-    
-
+    def save(self, *args, **kwargs):
+        if not self.pk:  # If the object is being created
+            # Calculate the due_date based on the limited_time of the challenge
+            latest_task = TasksModel.objects.filter(challenge=self.challenge).order_by('-due_date').first()
+            if latest_task:
+                self.due_date = latest_task.due_date + timedelta(days=self.challenge.limited_time)
+            else:
+                self.due_date = self.challenge.start_at + timedelta(days=selfchallenge.limited_time)
+        super(TasksModel, self).save(*args, **kwargs)
 
 
 
 class MemberModel(models.Model):
-    user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
-    challenge = models.ForeignKey(ChallengeModel, on_delete=models.CASCADE)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    user = models.ForeignKey(UserModel,  on_delete=models.CASCADE)
+    challenge = models.ForeignKey(ChallengeModel,  related_name='members',on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ('challenge', 'user')

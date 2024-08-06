@@ -9,6 +9,15 @@ from challenges.serializers import *
 from challenges.models import ChallengeModel, MemberModel
 
 
+
+class MyChallengesView(generics.ListAPIView):
+    serializer_class = MyChallengeSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return ChallengeModel.objects.filter(members__user=user)
+
 class JoinChallengeView(generics.GenericAPIView):
     queryset = ChallengeModel.objects.all()
     permission_classes = [IsAuthenticated]
@@ -29,7 +38,7 @@ class JoinChallengeView(generics.GenericAPIView):
 
 
 class ChallengeListView(generics.ListAPIView):
-    queryset = ChallengeModel.objects.all()
+    queryset = ChallengeModel.objects.filter(status=True)
     serializer_class = ChallengeListSerializer
 
 

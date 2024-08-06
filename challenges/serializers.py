@@ -22,19 +22,34 @@ class ChallengeDetailSerializers(serializers.ModelSerializer):
         model = ChallengeModel
         fields = ['id', 'name', 'image', 'goal', 'owner', 'members']
 
+
+class DailyTaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TasksModel
+        fields = ['id', 'due_date', 'tasks']
+
+
+
+class MyChallengeSerializer(serializers.ModelSerializer):
+    owner = UserSerializer(read_only=True)
+    daily_tasks = DailyTaskSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ChallengeModel
+        fields = ['id', 'owner', 'name', 'goal', 'image',  'daily_tasks']
+
 class ChallengeListSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
     class Meta:
         model = ChallengeModel
-        fields = ['id', 'owner', 'name', 'goal', 'image']
+        fields = ['id', 'owner', 'name', 'goal', 'image', 'status','created_at',]
 
 
 class JoinChallengeSerializer(serializers.ModelSerializer):
-    members = serializers.StringRelatedField(many=True)
 
     class Meta:
         model = ChallengeModel
-        fields = ['id', 'name', 'info', 'members']
+        fields = ['id', 'name', 'info']
 
 
 class ChallengeSerializer(serializers.ModelSerializer):
