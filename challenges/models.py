@@ -15,8 +15,9 @@ class ChallengeModel(models.Model):
     full_time = models.IntegerField() # Challenjning umumiy vaqti yani davom etish muddati
     end_at = models.DateField(null=True, blank=True)
     limited_time = models.IntegerField() # Qancha vaqtdqa yangi vazifa berilishi.
-    status = models.BooleanField(default=True, null=True, blank=True) # True - Public, False - Private
+    status = models.BooleanField(default=True) # True - Public, False - Private
     secret_key = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
+    secret_password = models.CharField(max_length=128, null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -30,10 +31,16 @@ class ChallengeModel(models.Model):
         verbose_name = 'challenge'
         verbose_name_plural = 'challenges'
 
-
     @property
     def full_name(self):
         return self.name
+
+    def check_private(self):
+        if self.status and self.secret_password:
+            raise ValidationError('Public challenges should not have a secret password.')
+        if not self.status and not self.secret_password:
+            raise ValidationError('Private challenges must have a secret password.')
+
 
     def challenge_end_at(self):
         if not self.end_at:
@@ -41,11 +48,15 @@ class ChallengeModel(models.Model):
             self.end_at = end_at
 
 
-    def check_star_at(self):
-        return self.start_at >= date.today()
+
+    def check_time(self):
+        if self.start_at and self.end_at:
+            if self.start_at >= self.end_at:
+                raise ValidationError("Start time must be before end time.")
 
     def clean(self):
-        self.check_star_at()
+        self.check_private()
+        self.check_time()
         self.challenge_end_at()
     
     def save(self, *args, **kwargs):
@@ -60,19 +71,10 @@ class TasksModel(models.Model):
     tasks = models.TextField()
 
     class Meta:
-        db_table = 'Tasks'
+        db_table = 'tasks'
         verbose_name = 'Tasks'
         verbose_name_plural = 'Task'    
 
-    def save(self, *args, **kwargs):
-        if not self.pk:  # If the object is being created
-            # Calculate the due_date based on the limited_time of the challenge
-            latest_task = TasksModel.objects.filter(challenge=self.challenge).order_by('-due_date').first()
-            if latest_task:
-                self.due_date = latest_task.due_date + timedelta(days=self.challenge.limited_time)
-            else:
-                self.due_date = self.challenge.start_at + timedelta(days=selfchallenge.limited_time)
-        super(TasksModel, self).save(*args, **kwargs)
 
 
 
@@ -82,7 +84,7 @@ class MemberModel(models.Model):
 
     class Meta:
         unique_together = ('challenge', 'user')
-        db_table = 'Members'
+        db_table = 'members'
         verbose_name = 'Member'
         verbose_name_plural = 'Members'
 

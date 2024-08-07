@@ -14,6 +14,13 @@ class UserSerializer(serializers.ModelSerializer):
         model = UserModel
         fields = '__all__'
 
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserModel
+        fields = ['id', 'username', 'first_name','last_name', 'email', 'data_joined']
+
+
 class SignUpSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super(SignUpSerializer, self).__init__(*args, **kwargs)
@@ -99,6 +106,14 @@ class UpdateUserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(response)
 
         return attrs
+
+
+    def validate_password(self, value):
+        user = User(username=self.initial_data.get('username'), email=self.initial_data.get('email'))
+        errors = validate_user_password(value, user=user)
+        if errors:
+            raise serializers.ValidationError(errors)
+        return value 
 
     def validate_username(self, username):
         if UserModel.objects.filter(username=username).exists():

@@ -46,7 +46,7 @@ class UserModel(AbstractUser, models.Model):
         return self.username
 
     class Meta:
-        db_table = 'Users'
+        db_table = 'users'
         verbose_name = 'User'
         verbose_name_plural = 'users'   
 
@@ -130,6 +130,6 @@ class ConfirmationModel(models.Model):
 
 
     class Meta:
-        db_table = 'Confirmation'
+        db_table = 'confirmation'
         verbose_name = 'Confirmation'
         verbose_name_plural = 'Confirmations'

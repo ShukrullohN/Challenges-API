@@ -12,7 +12,17 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from users.permissions import IsOwner
 
 from users.serializers import SignUpSerializer, UpdateUserSerializer, LoginSerializer, \
-    LogoutSerializer, ForgetPasswordSerializer, UserSerializer
+    LogoutSerializer, ForgetPasswordSerializer, UserSerializer, UserProfileSerializer
+
+
+
+class UserProfileView(generics.RetrieveAPIView):
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
 
 
 class UserListView(generics.ListAPIView):
