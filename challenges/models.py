@@ -2,6 +2,8 @@ from django.db import models
 from users.models import UserModel
 from datetime import date, timedelta
 import uuid
+from rest_framework.exceptions import ValidationError
+
 
 class ChallengeModel(models.Model):
     name = models.CharField(max_length=128)
@@ -9,7 +11,7 @@ class ChallengeModel(models.Model):
     goal = models.CharField(max_length=255)
     image = models.ImageField(upload_to='images', null=True, blank=True)
     mission = models.TextField()
-    is_different = models.BooleanField(default=True) # Kunlik vazifalarnimg bir xil yoki har xilligi. True - har xil
+    is_different = models.BooleanField(default=True) # Vazifalarnimg bir xil yoki har xilligi. True - har xil
     owner = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     start_at = models.DateField()   
     full_time = models.IntegerField() # Challenjning umumiy vaqti yani davom etish muddati
@@ -54,9 +56,15 @@ class ChallengeModel(models.Model):
             if self.start_at >= self.end_at:
                 raise ValidationError("Start time must be before end time.")
 
+    def check_start_time(self):
+        if self.start_at:
+            if date.today() > self.start_at:
+                raise ValidationError('Start time must be after today ')
+
     def clean(self):
         self.check_private()
         self.check_time()
+        self.check_start_time()
         self.challenge_end_at()
     
     def save(self, *args, **kwargs):

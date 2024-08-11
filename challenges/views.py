@@ -263,38 +263,48 @@ class ChallengeDeleteAPIView(APIView):
 
 
 
-class FillTaskView(generics.GenericAPIView):
-    serializer_class = FillTaskSerializer
+class FillTaskView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        challenge_id = self.kwargs['pk']
-        challenge = ChallengeModel.objects.get(id=challenge_id)
+        challenge_id = kwargs.get('pk')
+        task_description = request.data.get('task')
+        day = int(request.data.get('day', 0))
 
-        # Check if the user is the owner of the challenge
-        if challenge.owner != request.user:
-            return Response({"detail": "You do not have permission to fill tasks for this challenge."},
-                            status=status.HTTP_403_FORBIDDEN)
+        try:
+            challenge = ChallengeModel.objects.get(id=challenge_id, owner=request.user)
+        except ChallengeModel.DoesNotExist:
+            return Response({"error": "Challenge not found or you do not have permission."}, status=status.HTTP_404_NOT_FOUND)
+        
+        start_date = challenge.start_at
+        end_date = challenge.end_at
+        total_days = (end_date - start_date).days + 1
+        limited_time = challenge.limited_time
 
-        serializer = self.get_serializer(data=request.data, context={'view': self})
-        serializer.is_valid(raise_exception=True)
+        if challenge.is_different:
+            task_date = start_date + timedelta(days=(day - 1) * limited_time)
+            if task_date > end_date:
+                return Response({"error": "The day specified exceeds the challenge duration."}, status=status.HTTP_400_BAD_REQUEST)
 
-        tasks = serializer.validated_data['tasks']
-
-        # Calculate and create tasks for every `limited_time` interval
-        current_date = challenge.start_at
-        while current_date <= challenge.end_at:
-            due_date = current_date
-            TasksModel.objects.update_or_create(
+            TasksModel.objects.create(
                 challenge=challenge,
-                due_date=due_date,
-                defaults={'tasks': tasks}
+                task=task_description,
+                due_date=task_date
             )
-            current_date += timedelta(days=challenge.limited_time)
+            return Response({"message": f"Task for day {day} added successfully."}, status=status.HTTP_201_CREATED)
 
-        return Response({"detail": "Tasks have been filled successfully."}, status=status.HTTP_200_OK)
+        else:
+            # If tasks are the same (is_different is False)
+            current_date = start_date
+            while current_date <= end_date:
+                TasksModel.objects.get_or_create(
+                    challenge=challenge,
+                    task=task_description,
+                    due_date=current_date
+                )
+                current_date += timedelta(days=limited_time)
 
-
+            return Response({"message": "Tasks for the entire challenge duration added successfully."}, status=status.HTTP_201_CREATED)
 
 class TaskUpdateAPIView(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated, IsOwner]
