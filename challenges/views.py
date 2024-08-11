@@ -2,6 +2,7 @@ from datetime import timedelta
 from django.shortcuts import render
 from challenges.serializers import *
 from users.permissions import IsOwner
+from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
@@ -11,6 +12,62 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 
 
+class ChallengesHomeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        # Get the challenges the user is a member of
+        member_challenges = MemberModel.objects.filter(user=user.id)
+        challenge_ids = member_challenges.values_list('challenge', flat=True)
+
+        # Prepare the data to send
+        challenges_data = []
+
+        for challenge_id in challenge_ids:
+            challenge = ChallengeModel.objects.get(id=challenge_id)
+            tasks = TasksModel.objects.filter(challenge=challenge_id).order_by('due_date')
+
+            # Calculate the current task based on the duration and start date
+            current_date = timezone.now().date()
+            days_since_start = (current_date - challenge.start_at).days
+            task_duration = challenge.limited_time  # Duration of each task in days
+
+            # Determine the current task index
+            current_task_index = days_since_start // task_duration
+            if current_task_index < len(tasks):
+                current_task = tasks[current_task_index]
+            else:
+                # If the challenge has ended or no current task is found, skip this challenge
+                continue
+
+            # Prepare the serialized data for this challenge and task
+            challenge_info = {
+                'challenge_name': challenge.name,
+                #   'challenge_picture': challenge.image,  # Assuming a `picture` field exists
+                'task': current_task.task
+            }
+            challenges_data.append(challenge_info)
+
+        return Response(challenges_data)
+
+
+class MarkTaskDoneView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk, *args, **kwargs):
+        user = request.user
+        task = get_object_or_404(TasksModel, id=pk)
+
+        # Get or create the DoneTaskModel entry for this user and task
+        done_task, created = DoneTaskModel.objects.get_or_create(user=user, task=task)
+        done_task.done = True
+        done_task.save()
+
+        return Response({"status": "Task marked as done"})
+
+
+
 class MyChallengesView(generics.ListAPIView):
     serializer_class = MyChallengeSerializer
     permission_classes = [IsAuthenticated]
@@ -18,6 +75,8 @@ class MyChallengesView(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
         return ChallengeModel.objects.filter(members__user=user)
+
+
 
 class JoinChallengeView(generics.GenericAPIView):
     queryset = ChallengeModel.objects.all()
@@ -34,7 +93,7 @@ class JoinChallengeView(generics.GenericAPIView):
         # Create the membership
         MemberModel.objects.create(challenge=challenge, user=user)
 
-        return Response({'status': 'joined', 'message': serializer.data}, status=status.HTTP_200_OK)
+        return Response({'status': 'joined'}, status=status.HTTP_200_OK)
     
 
 class ChallengeMembersView(generics.ListAPIView):

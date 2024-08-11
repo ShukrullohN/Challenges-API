@@ -68,7 +68,7 @@ class ChallengeModel(models.Model):
 class TasksModel(models.Model):
     challenge = models.ForeignKey(ChallengeModel,related_name='daily_tasks', on_delete=models.CASCADE)
     due_date = models.DateField()
-    tasks = models.TextField()
+    task = models.TextField()
 
     class Meta:
         db_table = 'tasks'
@@ -76,7 +76,13 @@ class TasksModel(models.Model):
         verbose_name_plural = 'Task'    
 
 
+class DoneTaskModel(models.Model):
+    task = models.ForeignKey(TasksModel, related_name='done_task', on_delete=models.CASCADE)
+    user = models.ForeignKey(UserModel, related_name='user', on_delete=models.CASCADE)
+    done = models.BooleanField(default=False)
 
+    class Meta:
+        db_table = 'done_task'
 
 class MemberModel(models.Model):
     user = models.ForeignKey(UserModel,  on_delete=models.CASCADE)

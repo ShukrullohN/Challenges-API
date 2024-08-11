@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from challenges.models import ChallengeModel, TasksModel, MemberModel
+from challenges.models import ChallengeModel, TasksModel, MemberModel, DoneTaskModel
 from users.models import UserModel
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,12 +25,18 @@ class ChallengeDetailSerializers(serializers.ModelSerializer):
 
 
 
-
 class DailyTaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = TasksModel
         fields = ['id', 'due_date', 'tasks']
 
+
+
+class DoneTasksSerializer(serializers.ModelSerializer):
+    task = DailyTaskSerializer
+    class Meta:
+        model = DoneTaskModel
+        fields = ['id','task', 'done']
 
 class BulkUpdateListSerializer(serializers.ListSerializer):
     def update(self, instance, validated_data):
@@ -47,14 +54,26 @@ class BulkUpdateListSerializer(serializers.ListSerializer):
         return ret
 
 
+class ChallengeTaskSerializer(serializers.ModelSerializer):
+    challenge_name = serializers.CharField(source='challenge.name')
+    challenge_picture = serializers.ImageField(source='challenge.picture')
+
+    class Meta:
+        model = TasksModel
+        fields = ['challenge_name', 'challenge_picture', 'task']
+
 
 class MyChallengeSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
     daily_tasks = DailyTaskSerializer(many=True, read_only=True)
 
+
     class Meta:
         model = ChallengeModel
         fields = ['id', 'owner', 'name', 'goal', 'image',  'daily_tasks']
+
+
+
 
 class ChallengeListSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
